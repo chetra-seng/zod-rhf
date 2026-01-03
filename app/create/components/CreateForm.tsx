@@ -1,12 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,17 +14,27 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Task, taskSchema } from "@/validations/task";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 
 const CreateForm: React.FC = () => {
-  const {
-    control,
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<Task>({
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (data: Task) => {
+      const res = await fetch("http://localhost:3002/tasks", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      return res.json();
+    },
+    onSuccess: () => {},
+  });
+
+  const { control, handleSubmit, reset } = useForm<Task>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
       title: "",
@@ -41,7 +47,8 @@ const CreateForm: React.FC = () => {
     <form
       className="flex flex-col gap-4 p-10"
       onSubmit={handleSubmit((data) => {
-        console.log("submitted data:", data);
+        console.log("data");
+        mutate(data);
       })}
     >
       <Controller
@@ -54,7 +61,7 @@ const CreateForm: React.FC = () => {
               {...field}
               id="title"
               aria-invalid={fieldState.invalid}
-              placeholder="Login button not working on mobile"
+              placeholder="Enter task title"
               autoComplete="off"
             />
             {fieldState.error && <FieldError errors={[fieldState.error]} />}
@@ -68,6 +75,7 @@ const CreateForm: React.FC = () => {
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor="description">Description:</FieldLabel>
             <Textarea
+              placeholder="Enter task description"
               id="description"
               {...field}
               aria-invalid={fieldState.invalid}
@@ -88,7 +96,7 @@ const CreateForm: React.FC = () => {
               onValueChange={field.onChange}
             >
               <SelectTrigger aria-invalid={fieldState.invalid} id="priority">
-                <SelectValue placeholder="Select" />
+                <SelectValue placeholder="Select priority" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="high">High</SelectItem>
@@ -100,21 +108,26 @@ const CreateForm: React.FC = () => {
         )}
       />
 
-      <div className="flex gap-2">
-        <label htmlFor="completed">Complete</label>
-        <input type={"checkbox"} {...register("completed")} id="completed" />
-      </div>
+      <Controller
+        control={control}
+        name="completed"
+        render={({ field }) => (
+          <Field orientation="horizontal">
+            <Checkbox
+              id="completed"
+              name={field.name}
+              checked={field.value}
+              onCheckedChange={field.onChange}
+            />
+            <FieldLabel htmlFor="completed">Completed</FieldLabel>
+          </Field>
+        )}
+      />
       <div className="flex gap-2 self-start">
-        <Button
-          variant={"secondary"}
-          onClick={() => reset()}
-        >
+        <Button variant={"secondary"} onClick={() => reset()}>
           Reset
         </Button>
-        <Button
-          type="submit"
-          variant={"default"}
-        >
+        <Button type="submit" variant={"default"} disabled={isPending}>
           Create
         </Button>
       </div>
