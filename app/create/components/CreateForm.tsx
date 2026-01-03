@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Field,
   FieldError,
@@ -7,6 +8,14 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Task, taskSchema } from "@/validations/task";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
@@ -21,6 +30,11 @@ const CreateForm: React.FC = () => {
     reset,
   } = useForm<Task>({
     resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      priority: "high",
+    },
   });
 
   return (
@@ -30,19 +44,6 @@ const CreateForm: React.FC = () => {
         console.log("submitted data:", data);
       })}
     >
-      {/* <div className="flex flex-col">
-        <div className="flex gap-2">
-          <label htmlFor="title">Title:</label>
-          <input
-            {...register("title")}
-            id="title"
-            className="border border-gray-500 rounded"
-          />
-        </div>
-        {errors.title && (
-          <span className="text-red-500">{errors.title.message}</span>
-        )}
-      </div> */}
       <Controller
         control={control}
         name="title"
@@ -60,41 +61,62 @@ const CreateForm: React.FC = () => {
           </Field>
         )}
       />
+      <Controller
+        control={control}
+        name="description"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="description">Description:</FieldLabel>
+            <Textarea
+              id="description"
+              {...field}
+              aria-invalid={fieldState.invalid}
+            />
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
+      <Controller
+        control={control}
+        name={"priority"}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="priority">Priority</FieldLabel>
+            <Select
+              name={field.name}
+              value={field.value}
+              onValueChange={field.onChange}
+            >
+              <SelectTrigger aria-invalid={fieldState.invalid} id="priority">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
+      />
 
-      <div className="flex gap-2">
-        <label htmlFor="description">Description:</label>
-        <textarea
-          {...register("description")}
-          id="description"
-          className="border border-gray-500 rounded"
-        />
-      </div>
-      <div className="flex gap-2">
-        <label htmlFor="priority">Priority</label>
-        <select id="priority" {...register("priority")}>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
       <div className="flex gap-2">
         <label htmlFor="completed">Complete</label>
         <input type={"checkbox"} {...register("completed")} id="completed" />
       </div>
       <div className="flex gap-2 self-start">
-        <button
-          type="button"
-          className="px-4 py-1 bg-gray-300 text-gray-800 rounded"
+        <Button
+          variant={"secondary"}
           onClick={() => reset()}
         >
           Reset
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
-          className="px-4 py-1 bg-blue-500/80 text-white rounded hover:bg-blue-500 active:bg-blue-500"
+          variant={"default"}
         >
           Create
-        </button>
+        </Button>
       </div>
     </form>
   );
