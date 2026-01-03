@@ -1,12 +1,20 @@
 "use client";
 
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Task, taskSchema } from "@/validations/task";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 const CreateForm: React.FC = () => {
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -15,8 +23,6 @@ const CreateForm: React.FC = () => {
     resolver: zodResolver(taskSchema),
   });
 
-  console.log("error:", errors);
-
   return (
     <form
       className="flex flex-col gap-4 p-10"
@@ -24,7 +30,7 @@ const CreateForm: React.FC = () => {
         console.log("submitted data:", data);
       })}
     >
-      <div className="flex flex-col">
+      {/* <div className="flex flex-col">
         <div className="flex gap-2">
           <label htmlFor="title">Title:</label>
           <input
@@ -36,7 +42,24 @@ const CreateForm: React.FC = () => {
         {errors.title && (
           <span className="text-red-500">{errors.title.message}</span>
         )}
-      </div>
+      </div> */}
+      <Controller
+        control={control}
+        name="title"
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor="title">Title:</FieldLabel>
+            <Input
+              {...field}
+              id="title"
+              aria-invalid={fieldState.invalid}
+              placeholder="Login button not working on mobile"
+              autoComplete="off"
+            />
+            {fieldState.error && <FieldError errors={[fieldState.error]} />}
+          </Field>
+        )}
+      />
 
       <div className="flex gap-2">
         <label htmlFor="description">Description:</label>
